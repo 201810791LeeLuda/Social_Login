@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>socialLogin</title>
+</head>
+
+<body>
+  <div id="loginContainer">
+    <button id="googleLogin">구글 아이디로 로그인</button>
+  </div>
+  <div id="logoutContainer" style="display: none;">
+    <button id="logout">로그아웃</button>
+  </div>
+
+  <p id="loginStatus"></p> <!-- 로그인 성공 메시지를 표시할 공간 -->
+
+  <div id="userInfo" style="display: none;"> <!-- 유저 정보를 표시할 공간, 초기에는 숨김 상태 -->
+    <h3>유저 정보</h3>
+    <pre id="userJson"></pre>
+  </div>
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
+    import {
+      getAuth,
+      signInWithPopup,
+      GoogleAuthProvider,
+    } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA4NfCuRBy0P1CHqZZ728Kb0nNyABgSWkA",
+      authDomain: "easylogin-3e83d.firebaseapp.com",
+      projectId: "easylogin-3e83d",
+      storageBucket: "easylogin-3e83d.appspot.com",
+      messagingSenderId: "85210969703",
+      appId: "1:85210969703:web:a6c9cc6238901ba2d246c2",
+      measurementId: "G-65N3RQXH7W"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    const provider = new GoogleAuthProvider();
+    const auth = getAuth();
+    auth.languageCode = "ko";
+
+    document.getElementById("googleLogin").addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          // 로그인 성공 시 실행되는 부분
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          const token = credential.accessToken;
+          const user = result.user;
+
+          // "로그인 성공" 메시지를 표시하고 로그인 버튼을 숨깁니다.
+          document.getElementById("loginStatus").textContent = "로그인 성공";
+          document.getElementById("loginContainer").style.display = "none";
+          document.getElementById("logoutContainer").style.display = "block";
+
+          // 로그아웃 버튼에 클릭 이벤트 추가
+          document.getElementById("logout").addEventListener("click", () => {
+            auth.signOut().then(() => {
+              // 로그아웃 성공 시 실행되는 부분
+              console.log("로그아웃 성공");
+
+              // "로그인 성공" 메시지를 지우고 다시 로그인 버튼을 표시합니다.
+              document.getElementById("loginStatus").textContent = "";
+              document.getElementById("loginContainer").style.display = "block";
+              document.getElementById("logoutContainer").style.display = "none";
+
+              // 유저 정보 숨김
+              document.getElementById("userInfo").style.display = "none";
+              document.getElementById("userJson").textContent = "";
+            }).catch((error) => {
+              // 로그아웃 실패 시 처리
+              console.error("로그아웃 실패:", error);
+            });
+          });
+
+          // 유저 정보를 표시
+          document.getElementById("userInfo").style.display = "block";
+          document.getElementById("userJson").textContent = JSON.stringify(user, null, 2);
+        })
+        .catch((error) => {
+          // 에러 처리 부분
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          const email = error.customData.email;
+          const credential = GoogleAuthProvider.credentialFromError(error);
+          console.error("로그인 실패:", error);
+          // ...
+        });
+    });
+  </script>
+</body>
+
+</html>
